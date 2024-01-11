@@ -22,18 +22,87 @@ export class ProjectsService {
   }
 
   findAll() {
-    return `This action returns all projects`;
+    return this.projectRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} project`;
+  findOne(id: string) {
+    return this.projectRepo.findOneOrFail({ where: { id } });
   }
 
-  update(id: number, updateProjectDto: UpdateProjectDto) {
-    return `This action updates a #${id} project`;
+  async update(id: string, updateProjectDto: UpdateProjectDto) {
+    const status: 'success' | 'fail' = 'success';
+    const message = '';
+    const project = await this.projectRepo.findOneOrFail({ where: { id } });
+
+    project.name && (project.name = updateProjectDto.name);
+    project.description && (project.description = updateProjectDto.description);
+
+    if (updateProjectDto.started_at) {
+      const blockedStatus = [
+        ProjectStatus.Active,
+        ProjectStatus.Completed,
+        ProjectStatus.Cancelled,
+      ];
+
+      if (blockedStatus.includes(project.status)) {
+        return {
+          status: 'fail',
+          message: 'Cannot start project with the current status',
+        };
+      }
+
+      project.started_at = updateProjectDto.started_at;
+      project.status = ProjectStatus.Active;
+    }
+
+    if (updateProjectDto.cancelled_at) {
+      const blockedStatus = [ProjectStatus.Completed, ProjectStatus.Cancelled];
+
+      if (blockedStatus.includes(project.status)) {
+        return {
+          status: 'fail',
+          message: 'Cannot cancel project with the current status',
+        };
+      }
+
+      if (updateProjectDto.cancelled_at < project.started_at) {
+        return {
+          status: 'fail',
+          message: 'Cannot cancel project before it started',
+        };
+      }
+
+      project.started_at = updateProjectDto.started_at;
+      project.status = ProjectStatus.Cancelled;
+    }
+
+    if (updateProjectDto.finished_at) {
+      const blockedStatus = [ProjectStatus.Completed, ProjectStatus.Cancelled];
+
+      if (blockedStatus.includes(project.status)) {
+        return {
+          status: 'fail',
+          message: 'Cannot finish project with the current status',
+        };
+      }
+
+      if (updateProjectDto.finished_at < project.started_at) {
+        return {
+          status: 'fail',
+          message: 'Cannot cancel project before it started',
+        };
+      }
+
+      project.started_at = updateProjectDto.started_at;
+      project.status = ProjectStatus.Completed;
+    }
+
+    const updatedProject = await this.projectRepo.save(project);
+    return { status, message, updatedProject };
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} project`;
+  remove(id: string) {
+    return id;
+    // return this.projectRepo.remove(id);
   }
 }

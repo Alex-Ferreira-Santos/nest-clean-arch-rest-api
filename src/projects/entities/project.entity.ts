@@ -16,11 +16,17 @@ export class Project {
   @Column()
   name: string;
 
+  @Column()
+  description: string;
+
   @Column({ nullable: true, type: 'datetime' })
   started_at: Date | null;
 
   @Column({ nullable: true, type: 'datetime' })
   cancelled_at: Date | null;
+
+  @Column({ nullable: true, type: 'datetime' })
+  finished_at: Date | null;
 
   @Column({ nullable: true, type: 'datetime' })
   forecasted_at: Date | null;
