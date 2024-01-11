@@ -1,15 +1,13 @@
-import { Repository } from 'typeorm';
-import { Project } from '../entities/project.entity';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Inject, Injectable } from '@nestjs/common';
+import { IProjectRepository } from '../project.repository';
 
 @Injectable()
 export class FindOneProjectUseCase {
   constructor(
-    @InjectRepository(Project)
-    private projectRepo: Repository<Project>,
+    @Inject('IProjectRepository')
+    private projectRepo: IProjectRepository,
   ) {}
   execute(id: string) {
-    return this.projectRepo.findOneOrFail({ where: { id } });
+    return this.projectRepo.findById(id);
   }
 }

@@ -28,9 +28,6 @@ export class Project {
   @Column({ nullable: true, type: 'datetime' })
   finished_at: Date | null;
 
-  @Column({ nullable: true, type: 'datetime' })
-  forecasted_at: Date | null;
-
   @Column({ type: 'simple-enum' })
   status: ProjectStatus = ProjectStatus.Pending;
 
@@ -40,7 +37,7 @@ export class Project {
       description: string;
       started_at: Date | null;
       cancelled_at: Date | null;
-      forecasted_at: Date | null;
+      finished_at: Date | null;
     },
     id?: string,
   ) {
@@ -59,6 +56,7 @@ export class Project {
       ProjectStatus.Cancelled,
     ];
 
+    console.log(this.status);
     if (blockedStatus.includes(this.status)) {
       return {
         status: 'fail',
@@ -68,5 +66,47 @@ export class Project {
 
     this.started_at = started_at;
     this.status = ProjectStatus.Active;
+  }
+
+  cancel(cancelled_at: Date) {
+    const blockedStatus = [ProjectStatus.Completed, ProjectStatus.Cancelled];
+
+    if (blockedStatus.includes(this.status)) {
+      return {
+        status: 'fail',
+        message: 'Cannot cancel project with the current status',
+      };
+    }
+
+    if (cancelled_at < this.started_at) {
+      return {
+        status: 'fail',
+        message: 'Cannot cancel project before it started',
+      };
+    }
+
+    this.cancelled_at = cancelled_at;
+    this.status = ProjectStatus.Cancelled;
+  }
+
+  finish(finished_at: Date) {
+    const blockedStatus = [ProjectStatus.Completed, ProjectStatus.Cancelled];
+
+    if (blockedStatus.includes(this.status)) {
+      return {
+        status: 'fail',
+        message: 'Cannot finish project with the current status',
+      };
+    }
+
+    if (finished_at < this.started_at) {
+      return {
+        status: 'fail',
+        message: 'Cannot cancel project before it started',
+      };
+    }
+
+    this.finished_at = finished_at;
+    this.status = ProjectStatus.Completed;
   }
 }
