@@ -46,5 +46,27 @@ export class Project {
   ) {
     Object.assign(this, props);
     this.id = id ?? crypto.randomUUID();
+
+    if (props?.started_at) {
+      this.start(props.started_at);
+    }
+  }
+
+  start(started_at: Date) {
+    const blockedStatus = [
+      ProjectStatus.Active,
+      ProjectStatus.Completed,
+      ProjectStatus.Cancelled,
+    ];
+
+    if (blockedStatus.includes(this.status)) {
+      return {
+        status: 'fail',
+        message: 'Cannot start project with the current status',
+      };
+    }
+
+    this.started_at = started_at;
+    this.status = ProjectStatus.Active;
   }
 }
